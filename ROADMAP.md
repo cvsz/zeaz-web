@@ -1,31 +1,19 @@
 # Roadmap
 
-This template is intended to stay generic while providing production-grade repository foundations.
+## Production cutover
 
-## Foundation
+- [x] Standalone source/runtime architecture
+- [x] UI + edge API implementation
+- [x] CI and smoke-test gates
+- [x] Cloudflare deploy workflow
+- [ ] Configure valid production Cloudflare deployment credentials
+- [ ] Verify `runtime: standalone` on `www.zeaz.dev`
+- [ ] Retire old `zeaz-platform/workers/zeaz-loading` route ownership
 
-- [x] Repository documentation baseline
-- [x] Security and contribution policies
-- [x] Issue and pull request templates
-- [x] CI and security workflow baseline
-- [x] Dependabot configuration
-- [x] Release workflow
-- [x] Docker and task-runner placeholders
-- [x] Architecture and development documentation structure
+## Next product increments
 
-## Future optional modules
-
-- [ ] Language-specific starter packs
-- [ ] Infrastructure-as-code starter packs
-- [ ] Kubernetes and Helm starter packs
-- [ ] SBOM and provenance workflows
-- [ ] Release signing and artifact attestation
-- [ ] OpenSSF Scorecard workflow
-- [ ] Container vulnerability scanning
-- [ ] Documentation site starter
-- [ ] Monorepo profile
-- [ ] Service/API profile
-- [ ] Web application profile
-- [ ] Library/SDK profile
-
-Generated repositories should adopt only the modules appropriate to their stack and threat model.
+- Automated link/availability checks for the public app directory
+- OpenGraph/social preview assets
+- Richer structured product metadata and generated sitemap data
+- Optional analytics/consent layer aligned with the privacy policy
+- Accessibility regression checks and performance budgets

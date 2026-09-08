@@ -1,21 +1,18 @@
 # Changelog
 
-All notable changes to projects created from this template should be documented here.
-
-The format is based on Keep a Changelog and projects are encouraged to follow Semantic Versioning.
-
-## [Unreleased]
+## [1.0.0] - 2026-09-09
 
 ### Added
 
-- Repository template baseline
-- Security and contribution policies
-- GitHub issue and pull request templates
-- CI, CodeQL, dependency review, and Dependabot automation
-- Release workflow and project documentation structure
+- Standalone Cloudflare Worker for `www.zeaz.dev/*`.
+- Bilingual CREATE / WORK / BUILD corporate homepage.
+- Canonical 27-application ZEAZ registry shared by UI and `/api/apps`.
+- Health, status and public company APIs.
+- Legal, SEO, `ads.txt` and `security.txt` routes.
+- CSP/security headers and Worker smoke tests.
+- Cloudflare deployment workflow with live standalone health verification.
+- Docker local-development path and migration guide.
 
 ### Changed
 
-### Fixed
-
-### Security
+- Replaced the generic repository-template runtime placeholders with the ZEAZ Web production application.

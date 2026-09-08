@@ -1,19 +1,23 @@
-# Release
+# Release and Deployment
 
-## Versioning
+## Main branch
 
-Use an explicit versioning policy. Semantic Versioning is recommended for reusable software unless the project has a better-defined scheme.
+Changes merged to `main` run CI. Runtime-affecting paths also trigger `.github/workflows/deploy.yml`.
 
-## Release checklist
+## Production configuration
 
-1. Ensure required CI and security checks pass.
-2. Update `CHANGELOG.md`.
-3. Confirm migrations and compatibility notes.
-4. Verify deployment and rollback procedures.
-5. Create and push the release tag according to project policy.
-6. Publish artifacts only from trusted workflows.
-7. Verify the release after publication.
+GitHub Environment: `production`.
+
+It must contain the Cloudflare account identifier and a scoped token that can deploy the Worker and manage the `www.zeaz.dev/*` Worker route.
+
+## Gates
+
+1. JavaScript syntax and project contract validation.
+2. Worker route smoke tests.
+3. `wrangler deploy --dry-run`.
+4. Cloudflare deployment.
+5. Live health verification for `runtime: standalone`.
 
 ## Rollback
 
-Document how to restore the last known-good version, revert migrations safely, invalidate compromised artifacts, and communicate operational impact.
+Redeploy a known-good `zeaz-web` revision. During migration, `zeaz-platform/workers/zeaz-loading` remains the emergency rollback source until standalone ownership is confirmed and the old route ownership is retired.

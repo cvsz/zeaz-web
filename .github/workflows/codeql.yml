@@ -14,16 +14,11 @@ permissions:
 
 jobs:
   analyze:
-    name: Analyze GitHub Actions
-    runs-on: ubuntu-latest
+    name: Analyze JavaScript and GitHub Actions
+    runs-on: ubuntu-24.04
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
         with:
-          languages: actions
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+          languages: javascript-typescript,actions
+      - uses: github/codeql-action/analyze@v3

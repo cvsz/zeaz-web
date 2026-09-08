@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
   - name: Security vulnerability
-    url: https://github.com/cvsz/ztemplate/security
-    about: Please use private security reporting for vulnerabilities when available.
+    url: https://github.com/cvsz/zeaz-web/security
+    about: Use the repository security area for private vulnerability reporting when available.

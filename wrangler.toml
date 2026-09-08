@@ -1,0 +1,13 @@
+name = "zeaz-web"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+workers_dev = false
+minify = true
+
+routes = [
+  { pattern = "www.zeaz.dev/*", zone_name = "zeaz.dev" }
+]
+
+[observability]
+enabled = true
+head_sampling_rate = 1
