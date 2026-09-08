@@ -4,9 +4,9 @@ compatibility_date = "2026-09-01"
 workers_dev = false
 minify = true
 
-routes = [
-  { pattern = "www.zeaz.dev/*", zone_name = "zeaz.dev" }
-]
+# Production route ownership is managed by scripts/cutover-route.mjs.
+# Keeping routes out of Wrangler allows the existing route to be reassigned
+# atomically from the legacy Worker after the new Worker upload succeeds.
 
 [observability]
 enabled = true
