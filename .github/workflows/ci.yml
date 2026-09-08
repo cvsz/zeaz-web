@@ -27,4 +27,4 @@ jobs:
       - name: Cloudflare bundle dry-run
         run: npm run deploy:dry
       - name: Validate repository YAML
-        run: ruby -e 'require "yaml"; Dir.glob(".github/**/*.{yml,yaml}").each { |f| YAML.load_file(f); puts "ok #{f}" }'
+        run: ruby -e 'require "yaml"; Dir.glob(".github/**/*.{yml,yaml}").each { |f| YAML.load_file(f); puts f }'
