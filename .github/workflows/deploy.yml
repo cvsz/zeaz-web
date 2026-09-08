@@ -1,0 +1,61 @@
+name: Deploy www.zeaz.dev
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'scripts/**'
+      - 'package.json'
+      - 'wrangler.toml'
+      - '.github/workflows/deploy.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zeaz-web-production
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --ignore-scripts --no-audit --no-fund
+      - run: npm test
+      - run: npm run deploy:dry
+
+  deploy:
+    needs: validate
+    runs-on: ubuntu-24.04
+    environment:
+      name: production
+      url: https://www.zeaz.dev/
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Deploy Cloudflare Worker
+        run: npm run deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_WORKERS_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Verify standalone production health
+        run: |
+          for attempt in 1 2 3 4 5; do
+            body="$(curl --fail --silent --show-error https://www.zeaz.dev/health || true)"
+            if printf '%s' "$body" | grep -q '"runtime": "standalone"'; then
+              printf '%s\n' "$body"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo 'Production did not expose standalone health marker.' >&2
+          exit 1
