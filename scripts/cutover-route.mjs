@@ -2,7 +2,10 @@ const API = 'https://api.cloudflare.com/client/v4';
 const ZONE_NAME = 'zeaz.dev';
 const ROUTE_PATTERN = 'www.zeaz.dev/*';
 const TARGET_SCRIPT = 'zeaz-web';
-const HEALTH_URL = 'https://www.zeaz.dev/health';
+const PROBE_URLS = [
+  'https://www.zeaz.dev/api/status',
+  'https://www.zeaz.dev/healthz',
+];
 
 const token = process.env.CLOUDFLARE_API_TOKEN;
 const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
@@ -45,21 +48,52 @@ async function resolveZone() {
   return exact[0];
 }
 
-async function waitForStandaloneHealth() {
-  for (let attempt = 1; attempt <= 6; attempt += 1) {
+async function verifyRouteAssignment(zoneId, routeId) {
+  const current = await cloudflare(`/zones/${zoneId}/workers/routes/${routeId}`);
+  if (current.pattern !== ROUTE_PATTERN || current.script !== TARGET_SCRIPT) {
+    throw new Error(`Route API verification failed: expected ${ROUTE_PATTERN} -> ${TARGET_SCRIPT}, got ${current.pattern} -> ${current.script || 'no script'}.`);
+  }
+  console.log(`Route API confirms ${current.pattern} -> ${current.script}.`);
+}
+
+async function probeStandalone(baseUrl, attempt) {
+  const nonce = `${Date.now()}-${attempt}-${crypto.randomUUID()}`;
+  const url = `${baseUrl}?cutover=${encodeURIComponent(nonce)}`;
+  try {
+    const response = await fetch(url, {
+      redirect: 'follow',
+      headers: {
+        'cache-control': 'no-cache, no-store, max-age=0',
+        pragma: 'no-cache',
+        'user-agent': 'zeaz-web-cutover/1.0',
+      },
+    });
+    const text = await response.text();
+    let body = null;
     try {
-      const response = await fetch(`${HEALTH_URL}?cutover=${Date.now()}`, {
-        headers: { 'cache-control': 'no-cache' },
-      });
-      if (response.ok) {
-        const body = await response.json();
-        if (body?.status === 'ok' && body?.runtime === 'standalone') {
-          console.log(`Production health verified on attempt ${attempt}.`);
-          return true;
-        }
+      body = JSON.parse(text);
+    } catch {
+      // The legacy Worker may return HTML or another non-JSON response.
+    }
+    const ok = response.ok && body?.status === 'ok' && body?.runtime === 'standalone' && body?.service === 'zeaz-web';
+    if (!ok) {
+      const preview = text.replace(/\s+/g, ' ').slice(0, 240);
+      console.log(`Probe ${attempt} ${new URL(baseUrl).pathname}: HTTP ${response.status}; cf-cache-status=${response.headers.get('cf-cache-status') || 'n/a'}; body=${JSON.stringify(preview)}`);
+    }
+    return ok;
+  } catch (error) {
+    console.log(`Probe ${attempt} ${new URL(baseUrl).pathname} failed: ${error.message}`);
+    return false;
+  }
+}
+
+async function waitForStandaloneHealth() {
+  for (let attempt = 1; attempt <= 18; attempt += 1) {
+    for (const probeUrl of PROBE_URLS) {
+      if (await probeStandalone(probeUrl, attempt)) {
+        console.log(`Standalone runtime verified via ${new URL(probeUrl).pathname} on attempt ${attempt}.`);
+        return true;
       }
-    } catch (error) {
-      console.log(`Health attempt ${attempt} failed: ${error.message}`);
     }
     await new Promise((resolve) => setTimeout(resolve, 5000));
   }
@@ -88,6 +122,8 @@ if (previousScript === TARGET_SCRIPT) {
   console.log(`Created ${ROUTE_PATTERN} for ${TARGET_SCRIPT}.`);
 }
 
+await verifyRouteAssignment(zone.id, route.id);
+
 if (await waitForStandaloneHealth()) {
   console.log('Standalone production cutover verified.');
   process.exit(0);
@@ -111,4 +147,4 @@ try {
 } catch (rollbackError) {
   console.error(`ROLLBACK FAILED: ${rollbackError.message}`);
 }
-throw new Error('Production cutover failed health verification.');
+throw new Error('Production cutover failed runtime verification.');
