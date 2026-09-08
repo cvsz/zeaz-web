@@ -42,20 +42,18 @@ jobs:
         with:
           node-version: 22
       - run: npm install --ignore-scripts --no-audit --no-fund
-      - name: Deploy Cloudflare Worker
+      - name: Upload standalone Cloudflare Worker
         run: npm run deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Atomically cut over production route
+        run: node scripts/cutover-route.mjs
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       - name: Verify standalone production health
         run: |
-          for attempt in 1 2 3 4 5; do
-            body="$(curl --fail --silent --show-error https://www.zeaz.dev/health || true)"
-            if printf '%s' "$body" | grep -q '"runtime": "standalone"'; then
-              printf '%s\n' "$body"
-              exit 0
-            fi
-            sleep 5
-          done
-          echo 'Production did not expose standalone health marker.' >&2
-          exit 1
+          body="$(curl --fail --silent --show-error --header 'Cache-Control: no-cache' 'https://www.zeaz.dev/health?verify=1')"
+          printf '%s\n' "$body"
+          printf '%s' "$body" | grep -q '"runtime": "standalone"'
