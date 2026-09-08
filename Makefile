@@ -1,26 +1,37 @@
 SHELL := /bin/sh
 
-.PHONY: help setup format lint test build security ci
+.PHONY: help setup check test dev build docker-build docker-up docker-down deploy-dry deploy ci
 
 help:
-	@printf '%s\n' 'Targets: setup format lint test build security ci'
+	@printf '%s\n' 'Targets: setup check test dev build docker-build docker-up docker-down deploy-dry deploy ci'
 
 setup:
-	@echo 'Replace with project bootstrap command.'
+	npm install
 
-format:
-	@echo 'Replace with project formatter command.'
-
-lint:
-	@echo 'Replace with project lint command.'
+check:
+	npm run check
 
 test:
-	@echo 'Replace with project test command.'
+	npm test
 
-build:
-	@echo 'Replace with project build command.'
+dev:
+	npm run dev
 
-security:
-	@echo 'Use repository security workflows and add stack-specific scanners.'
+build: deploy-dry
 
-ci: lint test build security
+docker-build:
+	docker build -t zeaz-web:local .
+
+docker-up:
+	docker compose up --build -d
+
+docker-down:
+	docker compose down
+
+deploy-dry:
+	npm run deploy:dry
+
+deploy:
+	npm run deploy
+
+ci: test deploy-dry
