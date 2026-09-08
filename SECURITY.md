@@ -1,29 +1,28 @@
 # Security Policy
 
-Security is part of the default delivery baseline for repositories created from this template.
+ZEAZ Web is a public Cloudflare Worker application serving `www.zeaz.dev`.
 
 ## Reporting a vulnerability
 
-Do not disclose exploitable vulnerabilities in public issues, pull requests, discussions, or commit messages. Use GitHub's private vulnerability reporting/security advisory capability when enabled for the repository, or contact the repository owner through an agreed private channel.
+Do not disclose exploitable vulnerabilities in public issues, pull requests, discussions, or commit messages. Use GitHub private vulnerability reporting/security advisories when available, or contact the repository owner through a private channel.
 
-Include affected versions or commits, reproduction details, impact, prerequisites, and suggested remediation when available.
+Include the affected route or commit, reproduction details, impact, prerequisites and suggested remediation when possible.
 
-## Supported versions
+## Supported version
 
-Each generated project should replace this section with its real support policy before its first production release.
+The supported production version is the revision currently deployed from `main` to the `zeaz-web` Cloudflare Worker.
 
-## Security expectations
+## Security controls
 
-- Keep dependencies patched and review Dependabot alerts.
-- Keep CodeQL and dependency-review workflows enabled when supported.
-- Use least-privilege GitHub Actions permissions.
-- Never commit credentials, tokens, private keys, production secrets, or sensitive personal data.
-- Validate untrusted input and enforce authorization at trust boundaries.
-- Prefer fail-closed behavior for security-sensitive paths.
-- Preserve tenant and data isolation where applicable.
-- Review third-party actions and pin or constrain them according to project policy.
-- Do not disable security gates merely to obtain a passing build.
+- CSP with a per-request nonce.
+- HSTS and browser hardening headers.
+- GET/HEAD-only public route model.
+- CodeQL and Dependency Review in GitHub Actions.
+- Dependabot for npm, GitHub Actions and Docker.
+- Deployment values remain outside source control.
+- Public APIs expose only public company/application metadata.
+- Security checks must be fixed, not bypassed, when they fail.
 
-## Incident handling
+## Incident response
 
-Projects generated from this template should document containment, remediation, validation, disclosure, and rollback procedures appropriate to their risk profile.
+Contain the affected deployment, identify the last known-good commit, validate the fix with `npm test` and the Wrangler dry-run, redeploy, then verify `/health` and affected routes. Use the migration rollback procedure if the issue occurs during standalone cutover.
