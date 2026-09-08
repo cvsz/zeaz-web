@@ -1,21 +1,35 @@
 # Development
 
-## Local setup
+## Requirements
 
-1. Clone the generated repository.
-2. Copy `.env.example` to `.env` and populate local-only values.
-3. Install the selected runtime and dependencies.
-4. Replace placeholder `Makefile` targets with real project commands.
-5. Run formatting, linting, tests, build, and security checks before opening a pull request.
+- Node.js 22+
+- npm
+- Wrangler is installed as a pinned development dependency
 
-## Quality expectations
+## Start
 
-- Keep changes small and reviewable.
-- Add tests for behavior changes.
-- Prefer deterministic and reproducible tooling.
-- Do not commit secrets or local credentials.
-- Do not weaken security or CI gates to obtain a passing build.
+```bash
+npm install
+npm test
+npm run dev
+```
 
-## Documentation
+Open `http://localhost:8787`.
 
-Update architecture, development, release, and ADR documentation when behavior or operational assumptions change.
+## Change rules
+
+1. Keep all public apps in `src/apps.js`; the UI and `/api/apps` both consume this registry.
+2. Preserve corporate/legal markers unless there is an explicit business change.
+3. Keep the AdSense loader idempotent: one publisher script in the primary document.
+4. Do not weaken security headers to make a feature pass.
+5. Do not commit local deployment values.
+6. Run `npm test` before pushing.
+
+## Docker
+
+```bash
+docker compose up --build
+curl http://localhost:8787/health
+```
+
+Docker is a local portability path; Cloudflare Workers remains the production target.
