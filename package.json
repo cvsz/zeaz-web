@@ -1,0 +1,21 @@
+{
+  "name": "@zeazdev/zeaz-web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Standalone ZEAZDEV corporate web application and edge API for www.zeaz.dev",
+  "scripts": {
+    "dev": "wrangler dev",
+    "check": "node --check src/index.js && node --check src/site.js && node --check src/apps.js && node scripts/validate.mjs",
+    "test:smoke": "node scripts/smoke.mjs",
+    "test": "npm run check && npm run test:smoke",
+    "deploy": "wrangler deploy",
+    "deploy:dry": "wrangler deploy --dry-run"
+  },
+  "devDependencies": {
+    "wrangler": "4.129.1"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
