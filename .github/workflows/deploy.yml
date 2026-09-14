@@ -8,6 +8,7 @@ on:
       - 'src/**'
       - 'scripts/**'
       - 'package.json'
+      - 'package-lock.json'
       - 'wrangler.toml'
       - '.github/workflows/deploy.yml'
 
@@ -26,7 +27,8 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 22
-      - run: npm install --ignore-scripts --no-audit --no-fund
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm test
       - run: npm run deploy:dry
 
@@ -41,7 +43,8 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 22
-      - run: npm install --ignore-scripts --no-audit --no-fund
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Upload standalone Cloudflare Worker
         run: npm run deploy
         env:
