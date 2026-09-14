@@ -14,6 +14,7 @@ export function createServiceBrokerLead(input = {}, context = {}) {
   if (!serviceId) throw new TypeError('serviceId is required');
   if (!name) throw new TypeError('name is required');
   if (!email || !email.includes('@')) throw new TypeError('valid email is required');
+  if (input.privacyAccepted !== true) throw new TypeError('privacy consent is required');
 
   return {
     schemaVersion: SCHEMA_VERSION,
@@ -33,7 +34,7 @@ export function createServiceBrokerLead(input = {}, context = {}) {
       utmCampaign: clean(input.utmCampaign || '', 160)
     },
     consent: {
-      privacyAccepted: input.privacyAccepted === true,
+      privacyAccepted: true,
       marketingAccepted: input.marketingAccepted === true
     }
   };
@@ -46,7 +47,8 @@ export function isServiceBrokerLead(payload) {
     payload.leadId &&
     payload.serviceId &&
     payload.customer?.name &&
-    payload.customer?.email
+    payload.customer?.email &&
+    payload.consent?.privacyAccepted === true
   );
 }
 
