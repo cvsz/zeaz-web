@@ -1,4 +1,5 @@
 const SCHEMA_VERSION = 'service-broker.lead.v1';
+const CONSENT_POLICY_VERSION = 'privacy-2026-09-14';
 
 function clean(value, max = 500) {
   return String(value ?? '').trim().slice(0, max);
@@ -10,6 +11,7 @@ export function createServiceBrokerLead(input = {}, context = {}) {
   const email = clean(input.email, 254).toLowerCase();
   const company = clean(input.company, 200);
   const message = clean(input.message, 4000);
+  const occurredAt = context.occurredAt || new Date().toISOString();
 
   if (!serviceId) throw new TypeError('serviceId is required');
   if (!name) throw new TypeError('name is required');
@@ -19,7 +21,7 @@ export function createServiceBrokerLead(input = {}, context = {}) {
   return {
     schemaVersion: SCHEMA_VERSION,
     leadId: clean(context.leadId || crypto.randomUUID(), 100),
-    occurredAt: context.occurredAt || new Date().toISOString(),
+    occurredAt,
     source: 'zeaz-web',
     serviceId,
     customer: { name, email, company },
@@ -35,6 +37,8 @@ export function createServiceBrokerLead(input = {}, context = {}) {
     },
     consent: {
       privacyAccepted: true,
+      privacyPolicyVersion: CONSENT_POLICY_VERSION,
+      acceptedAt: occurredAt,
       marketingAccepted: input.marketingAccepted === true
     }
   };
@@ -52,4 +56,4 @@ export function isServiceBrokerLead(payload) {
   );
 }
 
-export { SCHEMA_VERSION };
+export { SCHEMA_VERSION, CONSENT_POLICY_VERSION };
