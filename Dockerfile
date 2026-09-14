@@ -1,8 +1,8 @@
 FROM node:26-alpine
 
 WORKDIR /app
-COPY package.json ./
-RUN npm install --ignore-scripts --no-audit --no-fund \
+COPY package.json package-lock.json ./
+RUN npm ci --ignore-scripts --no-audit --no-fund \
     && npm cache clean --force \
     && chown -R node:node /app
 COPY --chown=node:node src ./src
