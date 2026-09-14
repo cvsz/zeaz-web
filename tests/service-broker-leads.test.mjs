@@ -31,6 +31,26 @@ test('creates normalized lead contract', () => {
 });
 
 test('rejects missing identity and service fields', () => {
-  assert.throws(() => createServiceBrokerLead({ email: 'buyer@example.com', name: 'Buyer' }), /serviceId/);
-  assert.throws(() => createServiceBrokerLead({ serviceId: 'automation', email: 'bad', name: 'Buyer' }), /email/);
+  assert.throws(() => createServiceBrokerLead({ email: 'buyer@example.com', name: 'Buyer', privacyAccepted: true }), /serviceId/);
+  assert.throws(() => createServiceBrokerLead({ serviceId: 'automation', email: 'bad', name: 'Buyer', privacyAccepted: true }), /email/);
+});
+
+test('requires explicit privacy consent at lead creation', () => {
+  const base = { serviceId: 'automation', email: 'buyer@example.com', name: 'Buyer' };
+  assert.throws(() => createServiceBrokerLead(base), /privacy consent/);
+  assert.throws(() => createServiceBrokerLead({ ...base, privacyAccepted: false }), /privacy consent/);
+  assert.throws(() => createServiceBrokerLead({ ...base, privacyAccepted: 'true' }), /privacy consent/);
+});
+
+test('rejects lead payloads without explicit privacy consent', () => {
+  const lead = createServiceBrokerLead({
+    serviceId: 'automation',
+    email: 'buyer@example.com',
+    name: 'Buyer',
+    privacyAccepted: true
+  }, { leadId: 'lead-consent-001', occurredAt: '2026-09-14T07:00:00.000Z' });
+
+  assert.equal(isServiceBrokerLead(lead), true);
+  assert.equal(isServiceBrokerLead({ ...lead, consent: { privacyAccepted: false, marketingAccepted: false } }), false);
+  assert.equal(isServiceBrokerLead({ ...lead, consent: undefined }), false);
 });
