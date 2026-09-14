@@ -26,5 +26,11 @@ jobs:
         run: npm test
       - name: Cloudflare bundle dry-run
         run: npm run deploy:dry
+      - name: Build hardened container
+        run: docker build --pull --tag zeaz-web:ci .
+      - name: Verify container runs as non-root
+        run: |
+          test "$(docker image inspect zeaz-web:ci --format '{{.Config.User}}')" = "node"
+          test "$(docker image inspect zeaz-web:ci --format '{{json .Config.Healthcheck.Test}}')" != "null"
       - name: Validate repository YAML
         run: ruby -e 'require "yaml"; Dir.glob(".github/**/*.{yml,yaml}").each { |f| YAML.load_file(f); puts f }'
