@@ -7,11 +7,15 @@ const deployStart = workflow.indexOf('\n  deploy:\n');
 assert.notEqual(deployStart, -1, 'production deploy job must exist');
 const deployJob = workflow.slice(deployStart + 1);
 
-test('production deployment is manual and restricted to main', () => {
-  assert.match(workflow, /^on:\n  workflow_dispatch:\n  push:/m);
+test('production deployment requires an explicit confirmation from main', () => {
+  assert.match(workflow, /^on:\n  workflow_dispatch:\n    inputs:\n      confirm_production_deploy:/m);
+  assert.match(
+    workflow,
+    /confirm_production_deploy:\n\s+description:.*\n\s+required: true\n\s+type: boolean\n\s+default: false/m
+  );
   assert.match(
     deployJob,
-    /^    if: \$\{\{ github\.event_name == 'workflow_dispatch' && github\.ref == 'refs\/heads\/main' \}\}$/m
+    /^    if: \$\{\{ github\.event_name == 'workflow_dispatch' && github\.ref == 'refs\/heads\/main' && inputs\.confirm_production_deploy == true \}\}$/m
   );
   assert.match(deployJob, /environment:\n      name: production/m);
 });
