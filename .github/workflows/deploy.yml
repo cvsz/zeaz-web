@@ -7,6 +7,7 @@ on:
     paths:
       - 'src/**'
       - 'scripts/**'
+      - 'tests/**'
       - 'package.json'
       - 'package-lock.json'
       - 'wrangler.toml'
@@ -22,8 +23,11 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 22
@@ -33,18 +37,37 @@ jobs:
       - run: npm run deploy:dry
 
   deploy:
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' }}
     needs: validate
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     environment:
       name: production
       url: https://www.zeaz.dev/
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 22
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify Cloudflare deployment credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          whoami_log="${RUNNER_TEMP}/wrangler-whoami.log"
+          if ! ./node_modules/.bin/wrangler whoami >"$whoami_log" 2>&1; then
+            rm -f "$whoami_log"
+            echo "::error::Cloudflare credential preflight failed; no Worker upload or route cutover was attempted. Verify token validity and scope in the approved secret manager."
+            exit 1
+          fi
+          rm -f "$whoami_log"
+          echo "Cloudflare credential preflight succeeded."
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       - name: Upload standalone Cloudflare Worker
         run: npm run deploy
         env:
