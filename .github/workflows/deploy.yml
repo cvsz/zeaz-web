@@ -2,6 +2,12 @@ name: Deploy www.zeaz.dev
 
 on:
   workflow_dispatch:
+    inputs:
+      confirm_production_deploy:
+        description: "Confirm authorization to publish the Worker and cut over www.zeaz.dev"
+        required: true
+        type: boolean
+        default: false
   push:
     branches: [main]
     paths:
@@ -37,7 +43,7 @@ jobs:
       - run: npm run deploy:dry
 
   deploy:
-    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.confirm_production_deploy == true }}
     needs: validate
     runs-on: ubuntu-24.04
     timeout-minutes: 15
