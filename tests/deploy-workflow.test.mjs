@@ -17,7 +17,7 @@ test('production deployment is manual and restricted to main', () => {
 });
 
 test('all external workflow actions are pinned to immutable commit SHAs', () => {
-  const refs = [...workflow.matchAll(/^\s+uses:\s*[^@\s]+@([^\s#]+)/gm)].map((match) => match[1]);
+  const refs = [...workflow.matchAll(/^[ \t]*-[ \t]+uses:[ \t]*[^@\s]+@([^\s#]+)/gm)].map((match) => match[1]);
   assert.equal(refs.length, 4, 'expected the two checkout and two setup-node action references');
   for (const ref of refs) {
     assert.match(ref, /^[0-9a-f]{40}$/i, `action reference must be a full commit SHA: ${ref}`);
@@ -37,7 +37,8 @@ test('Cloudflare credentials are checked before upload without printing prefligh
   const cutover = deployJob.indexOf('Atomically cut over and verify production route');
   assert.ok(preflight >= 0 && upload > preflight, 'credential preflight must precede Worker upload');
   assert.ok(cutover > upload, 'route cutover must follow successful Worker upload');
-  assert.match(deployJob, /wrangler whoami >"\$\{RUNNER_TEMP\}\/wrangler-whoami\.log" 2>&1/);
+  assert.match(deployJob, /whoami_log="\$\{RUNNER_TEMP\}\/wrangler-whoami\.log"/);
+  assert.match(deployJob, /wrangler whoami >"\$whoami_log" 2>&1/);
   assert.match(deployJob, /rm -f "\$whoami_log"/);
   assert.doesNotMatch(deployJob, /cat "\$whoami_log"/);
 });
