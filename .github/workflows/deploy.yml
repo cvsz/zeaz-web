@@ -8,6 +8,10 @@ on:
         required: true
         type: boolean
         default: false
+      expected_sha:
+        description: "Exact 40-character main commit SHA validated for this deployment"
+        required: true
+        type: string
   push:
     branches: [main]
     paths:
@@ -51,6 +55,15 @@ jobs:
       name: production
       url: https://www.zeaz.dev/
     steps:
+      - name: Verify exact main commit SHA before accessing deployment credentials
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_REF" == "refs/heads/main" ]] || { echo "::error::Production deployment must be dispatched from main"; exit 1; }
+          [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::Expected SHA must be a full lowercase 40-character commit"; exit 1; }
+          [[ "$EXPECTED_SHA" == "$GITHUB_SHA" ]] || { echo "::error::Expected SHA does not match the dispatched commit"; exit 1; }
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
