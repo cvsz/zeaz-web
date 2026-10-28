@@ -62,3 +62,15 @@ test('Cloudflare credentials are checked before upload without printing prefligh
   assert.match(deployJob, /rm -f "\$whoami_log"/);
   assert.doesNotMatch(deployJob, /cat "\$whoami_log"/);
 });
+
+test('Cloudflare challenge pages do not count as runtime verification', () => {
+  const cutover = readFileSync(new URL('../scripts/cutover-route.mjs', import.meta.url), 'utf8');
+  assert.match(
+    cutover,
+    /if \(challengeCount === observationCount && observationCount > 0\) \{[\s\S]*?return \{ verified: false, mode: 'control-plane-challenge-gated' \};/
+  );
+  assert.doesNotMatch(
+    cutover,
+    /return \{ verified: true, mode: 'control-plane-challenge-gated' \}/
+  );
+});
