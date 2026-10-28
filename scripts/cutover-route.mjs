@@ -121,8 +121,8 @@ async function verifyRuntimeOrChallengeGate() {
   }
 
   if (challengeCount === observationCount && observationCount > 0) {
-    console.warn('All public probes were intercepted by a Cloudflare challenge. Treating control-plane route verification as authoritative while preserving the site security challenge.');
-    return { verified: true, mode: 'control-plane-challenge-gated' };
+    console.warn('All public probes were intercepted by a Cloudflare challenge. Runtime health is inconclusive; control-plane route assignment alone is not sufficient to mark the cutover verified.');
+    return { verified: false, mode: 'control-plane-challenge-gated' };
   }
 
   return { verified: false, mode: 'failed' };
