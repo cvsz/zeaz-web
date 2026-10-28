@@ -7,6 +7,22 @@ const deployStart = workflow.indexOf('\n  deploy:\n');
 assert.notEqual(deployStart, -1, 'production deploy job must exist');
 const deployJob = workflow.slice(deployStart + 1);
 
+test('production cutover requires the exact dispatched main SHA before checkout', () => {
+  assert.match(
+    workflow,
+    /expected_sha:\n\s+description:.*\n\s+required: true\n\s+type: string/m
+  );
+
+  const shaGate = deployJob.indexOf('Verify exact main commit SHA before accessing deployment credentials');
+  const checkout = deployJob.indexOf('uses: actions/checkout@');
+  const credentials = deployJob.indexOf('Verify Cloudflare deployment credentials');
+  assert.ok(shaGate >= 0 && checkout > shaGate, 'exact-SHA gate must precede checkout');
+  assert.ok(credentials > checkout, 'credential preflight must follow exact-SHA validation');
+  assert.ok(deployJob.includes('EXPECTED_SHA: ${{ inputs.expected_sha }}'));
+  assert.ok(deployJob.includes('[[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]'));
+  assert.ok(deployJob.includes('[[ "$EXPECTED_SHA" == "$GITHUB_SHA" ]]'));
+});
+
 test('production deployment requires an explicit confirmation from main', () => {
   assert.match(workflow, /^on:\n  workflow_dispatch:\n    inputs:\n      confirm_production_deploy:/m);
   assert.match(
